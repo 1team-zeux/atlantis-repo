@@ -14,11 +14,15 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}
       - AWS_REGION=ap-northeast-2
     volumes:
-      - ./keys/github-app.pem:/etc/atlantis/github-app.pem
+      - /home/ubuntu/iac-keys/github-app.pem:/etc/atlantis/github-app.pem
       - atlantis-data:/etc/atlantis/data
     # Coolify를 쓴다면 여기에 Traefik 라벨을 붙여서 80번 포트로 연결되게 함
     networks:
       - iac-network
 
+networks:
+  iac-network:
+    driver: bridge
+
 volumes:
-  atlantis-data: # 테라폼 상태 파일과 캐시를 보존하기 위해 필수!
+  atlantis-data:
