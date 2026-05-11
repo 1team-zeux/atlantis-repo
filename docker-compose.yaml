@@ -1,0 +1,24 @@
+services:
+  atlantis:
+    build: .  # 위 Dockerfile이 있는 경로
+    container_name: iac-atlantis
+    environment:
+      # GitHub App 설정 (앞에서 구한 값들)
+      - ATLANTIS_GH_APP_ID=${GITHUB_APP_ID}
+      - ATLANTIS_GH_APP_KEY_FILE=/etc/atlantis/github-app.pem
+      - ATLANTIS_GH_WEBHOOK_SECRET=${ATLANTIS_WEBHOOK_SECRET}
+      # 저장소 권한 설정
+      - ATLANTIS_REPO_ALLOWLIST=github.com/상윤님ID/*
+      # AWS 자격 증명 (서버의 IAM Role을 쓰거나 환경변수로 주입)
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}
+      - AWS_REGION=ap-northeast-2
+    volumes:
+      - ./keys/github-app.pem:/etc/atlantis/github-app.pem
+      - atlantis-data:/etc/atlantis/data
+    # Coolify를 쓴다면 여기에 Traefik 라벨을 붙여서 80번 포트로 연결되게 함
+    networks:
+      - iac-network
+
+volumes:
+  atlantis-data: # 테라폼 상태 파일과 캐시를 보존하기 위해 필수!
