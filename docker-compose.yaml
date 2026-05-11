@@ -4,6 +4,7 @@ services:
     container_name: iac-atlantis
     environment:
       # GitHub App 설정 (앞에서 구한 값들)
+      - ATLANTIS_WRITE_GIT_CREDS=true
       - ATLANTIS_GH_APP_ID=${GITHUB_APP_ID}
       - ATLANTIS_GH_APP_KEY_FILE=/etc/atlantis/github-app.pem
       - ATLANTIS_GH_WEBHOOK_SECRET=${ATLANTIS_WEBHOOK_SECRET}
