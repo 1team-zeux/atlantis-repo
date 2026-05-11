@@ -1,30 +1,43 @@
 services:
   atlantis:
-    build: .  # 위 Dockerfile이 있는 경로
+    build: .
     container_name: iac-atlantis
     environment:
-      # GitHub App 설정 (앞에서 구한 값들)
       - ATLANTIS_WRITE_GIT_CREDS=true
       - ATLANTIS_GH_APP_ID=${GITHUB_APP_ID}
       - ATLANTIS_GH_APP_KEY_FILE=/etc/atlantis/github-app.pem
       - ATLANTIS_GH_WEBHOOK_SECRET=${ATLANTIS_WEBHOOK_SECRET}
-      # 저장소 권한 설정
-      - ATLANTIS_REPO_ALLOWLIST=github.com/상윤님ID/*
-      # AWS 자격 증명 (서버의 IAM Role을 쓰거나 환경변수로 주입)
+      - ATLANTIS_REPO_ALLOWLIST=github.com/상윤님ID/* # 본인 ID로 수정
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}
       - AWS_REGION=ap-northeast-2
-      - "traefik.http.services.atlantis-kzn7t9wa415n5nthq3q0cn2f.loadbalancer.server.port=4141"
     volumes:
       - /home/ubuntu/iac-keys/github-app.pem:/etc/atlantis/github-app.pem
       - atlantis-data:/etc/atlantis/data
-    # Coolify를 쓴다면 여기에 Traefik 라벨을 붙여서 80번 포트로 연결되게 함
+    # 1. 라벨 섹션으로 Traefik 설정을 옮기고 Host 주소를 추가해야 합니다.
+    labels:
+      - traefik.enable=true
+      # 주소 설정 (기존 backend 주소 체계를 따름)
+      - traefik.http.routers.atlantis.rule=Host(`atlantis.aptitude-pro.shop`)
+      - traefik.http.routers.atlantis.entrypoints=https
+      - traefik.http.routers.atlantis.tls=true
+      - traefik.http.routers.atlantis.tls.certresolver=letsencrypt
+      - traefik.http.services.atlantis.loadbalancer.server.port=4141
+      - traefik.docker.network=coolify
+      # Coolify 관리용 라벨 (기존 서비스에서 복사)
+      - coolify.managed=true
+      - coolify.applicationId=1
+      - coolify.type=application
+    # 2. Traefik(coolify) 네트워크에 연결되어야 외부에서 접속이 됩니다.
     networks:
       - iac-network
+      - coolify
 
 networks:
   iac-network:
     driver: bridge
+  coolify:
+    external: true # 기존 설정 유지
 
 volumes:
   atlantis-data:
